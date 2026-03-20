@@ -14,6 +14,8 @@ public class HelloApplication extends Application {
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
 
+    private Tank player1;
+
     @Override
     public void start(Stage primaryStage) {
         // Tworzymy "płótno", na którym będziemy rysować naszą grę
@@ -31,14 +33,17 @@ public class HelloApplication extends Application {
         primaryStage.setResizable(false);
         primaryStage.show();
 
-        // GŁÓWNA PĘTLA GRY (Game Loop) - wykonuje się ok. 60 razy na sekundę
+        // Game Loop
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                update();   // 1. Liczenie fizyki
-                draw(gc);   // 2. Rysowanie grafiki
+                update();   // 1. liczenie fizyki
+                draw(gc);   // 2. rysowanie grafiki
             }
         };
+
+        player1 = new Tank(400, 300);
+
         timer.start();
     }
 
@@ -53,8 +58,6 @@ public class HelloApplication extends Application {
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // Testowe rysowanie - żółte słońce
-        gc.setFill(Color.YELLOW);
-        gc.fillOval(50, 50, 80, 80);
+        player1.draw(gc);
     }
 }
