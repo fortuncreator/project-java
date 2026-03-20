@@ -15,6 +15,7 @@ public class HelloApplication extends Application {
     private static final int HEIGHT = 600;
 
     private Tank player1;
+    private Terrain terrain;
 
     @Override
     public void start(Stage primaryStage) {
@@ -43,6 +44,7 @@ public class HelloApplication extends Application {
         };
 
         player1 = new Tank(400, 300);
+        terrain = new Terrain(WIDTH);
 
         timer.start();
     }
@@ -58,6 +60,7 @@ public class HelloApplication extends Application {
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
 
+        terrain.draw(gc);
         player1.draw(gc);
     }
 }
