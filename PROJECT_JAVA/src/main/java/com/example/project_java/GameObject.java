@@ -10,6 +10,6 @@ public abstract class GameObject {
         this.y = startY;
     }
 
-    public abstract void update();
+    public abstract void update(Terrain terrain);
     public abstract void draw(GraphicsContext gc);
 }

@@ -5,7 +5,15 @@ import javafx.scene.image.Image;
 
 public class Tank extends GameObject {
     @Override
-    public void update() {
+    public void update(Terrain terrain) {
+        double groundY = terrain.getHeight((int) this.x);
+        double tankBottom = tankImage.getHeight() + this.y; // obliczenie y dolu czolgu
+        if(tankBottom < groundY){
+            this.y = this.y + 2;
+        }
+        else{
+            this.y = groundY - tankImage.getHeight();
+        }
 
     }
 

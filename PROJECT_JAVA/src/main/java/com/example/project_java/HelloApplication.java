@@ -39,6 +39,7 @@ public class HelloApplication extends Application {
             @Override
             public void handle(long now) {
                 update();   // 1. liczenie fizyki
+                player1.update(terrain);
                 draw(gc);   // 2. rysowanie grafiki
             }
         };
