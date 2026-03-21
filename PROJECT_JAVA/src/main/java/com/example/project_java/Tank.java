@@ -31,6 +31,10 @@ public class Tank extends GameObject {
         this.angle = Math.toDegrees(Math.atan2(dy, dx));
     }
 
+    // lufa i jej nachylenie
+    private Image barrelImage;
+    private double barrelAngle = 0;
+
     @Override
     public void draw(GraphicsContext gc) {
         gc.save();
@@ -47,6 +51,14 @@ public class Tank extends GameObject {
         // rysujemy obrazek przesuniety w lewo o pol szerokosci i w gore o cala wysokosc
         gc.drawImage(tankImage, -(tankImage.getWidth() / 2), -tankImage.getHeight());
 
+            // wstawienie lufy
+            gc.save();
+
+            gc.translate(6, -tankImage.getHeight() + 5);
+            gc.rotate(this.barrelAngle);
+            gc.drawImage(barrelImage, 0, -(barrelImage.getHeight() / 2));
+            gc.restore();
+
         gc.restore();
     }
 
@@ -57,9 +69,27 @@ public class Tank extends GameObject {
     public Tank(double startX, double startY) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
         tankImage = new Image("file:assets/tank1.png");
-
+        barrelImage = new Image("file:assets/barrel.png");
     }
 
+    // maksymalne wartosci nachylenia lufy
+    private final double MIN_ANGLE = -80;
+    private final double MAX_ANGLE = 20;
+
+    // podnoszenie i opuszczanie lufy
+    public void aimUp(){
+        this.barrelAngle -= 1;
+        if(this.barrelAngle < MIN_ANGLE){
+            this.barrelAngle = MIN_ANGLE;
+        }
+    }
+    public void aimDown(){
+        this.barrelAngle += 1;
+        if(this.barrelAngle > MAX_ANGLE){
+            this.barrelAngle = MAX_ANGLE;
+        }
+    }
+    // ruch czolgu
     public void moveLeft(){
         this.x -= 2;
     }

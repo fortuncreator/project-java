@@ -19,6 +19,8 @@ public class HelloApplication extends Application {
     private Terrain terrain;
     private boolean leftPressed = false;
     private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -26,26 +28,37 @@ public class HelloApplication extends Application {
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // Podstawowy układ okna
         StackPane root = new StackPane();
         root.getChildren().add(canvas);
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
         scene.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.LEFT){
+            if (event.getCode() == KeyCode.LEFT) {
                 leftPressed = true;
             }
-            if (event.getCode() == KeyCode.RIGHT){
+            if (event.getCode() == KeyCode.RIGHT) {
                 rightPressed = true;
+            }
+            if (event.getCode() == KeyCode.UP) {
+                upPressed = true;
+            }
+            if (event.getCode() == KeyCode.DOWN) {
+                downPressed = true;
             }
         });
 
         scene.setOnKeyReleased(event -> {
-            if (event.getCode() == KeyCode.LEFT){
+            if (event.getCode() == KeyCode.LEFT) {
                 leftPressed = false;
             }
-            if (event.getCode() == KeyCode.RIGHT){
+            if (event.getCode() == KeyCode.RIGHT) {
                 rightPressed = false;
+            }
+            if (event.getCode() == KeyCode.UP) {
+                upPressed = false;
+            }
+            if (event.getCode() == KeyCode.DOWN) {
+                downPressed = false;
             }
         });
 
@@ -78,6 +91,12 @@ public class HelloApplication extends Application {
         }
         if (rightPressed){
             player1.moveRight();
+        }
+        if (upPressed){
+            player1.aimUp();
+        }
+        if (downPressed){
+            player1.aimDown();
         }
     }
 
