@@ -96,4 +96,40 @@ public class Tank extends GameObject {
     public void moveRight(){
         this.x += 2;
     }
+
+    public double getAbsoluteBarrelAngle() {
+        return this.angle + this.barrelAngle;
+    }
+
+    public double getShootX() {
+        // 1. Środek obrotu czołgu
+        double pivotX = this.x + (tankImage.getWidth() / 2);
+        double pivotY = this.y + tankImage.getHeight();
+
+        // 2. Pozycja zawiasu (idealnie zgrana z Twoim gc.translate w metodzie draw!)
+        double localHingeX = 6;
+        double localHingeY = -tankImage.getHeight() + 5;
+
+        // 3. Obliczamy pozycję zawiasu po przechyleniu czołgu
+        double tankAngleRad = Math.toRadians(this.angle);
+        double hingeX = pivotX + (localHingeX * Math.cos(tankAngleRad)) - (localHingeY * Math.sin(tankAngleRad));
+
+        // 4. Pozycja końcówki lufy (odległość = szerokość Twojego obrazka lufy)
+        double absAngleRad = Math.toRadians(getAbsoluteBarrelAngle());
+        return hingeX + (barrelImage.getWidth() * Math.cos(absAngleRad));
+    }
+
+    public double getShootY() {
+        double pivotX = this.x + (tankImage.getWidth() / 2);
+        double pivotY = this.y + tankImage.getHeight();
+
+        double localHingeX = 6;
+        double localHingeY = -tankImage.getHeight() + 5;
+
+        double tankAngleRad = Math.toRadians(this.angle);
+        double hingeY = pivotY + (localHingeX * Math.sin(tankAngleRad)) + (localHingeY * Math.cos(tankAngleRad));
+
+        double absAngleRad = Math.toRadians(getAbsoluteBarrelAngle());
+        return hingeY + (barrelImage.getWidth() * Math.sin(absAngleRad));
+    }
 }
