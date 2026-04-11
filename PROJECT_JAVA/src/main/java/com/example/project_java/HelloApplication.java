@@ -126,6 +126,8 @@ public class HelloApplication extends Application {
         for (Missile m : missiles){
             m.update(terrain);
         }
+        missiles.removeIf(m -> m.hasCollidedWithGround(terrain) || m.getY() > HEIGHT);
+
     }
 
     // Metoda do rysowania klatki na ekranie

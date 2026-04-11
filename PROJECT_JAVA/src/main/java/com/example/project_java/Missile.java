@@ -2,7 +2,7 @@ package com.example.project_java;
 import javafx.scene.image.Image;
 import javafx.scene.canvas.GraphicsContext;
 
-public class Missile extends GameObject{
+public class Missile extends GameObject implements Collidable{
     private double velocityX;
     private double velocityY;
     private final double GRAVITY = 0.2;
@@ -47,5 +47,14 @@ public class Missile extends GameObject{
         gc.drawImage(missileImage, -4, -4, 8, 8);
         gc.restore();
 
+    }
+    @Override
+    public boolean hasCollidedWithGround(Terrain terrain){
+        if(this.x < 0 || this.x >= 800){
+            return true;
+        }
+        double groundY = terrain.getHeight((int) this.x);
+
+        return this.y >=groundY;
     }
 }
