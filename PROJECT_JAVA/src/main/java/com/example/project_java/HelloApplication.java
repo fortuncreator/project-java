@@ -19,13 +19,20 @@ public class HelloApplication extends Application {
 
     private Tank player1;
     private Terrain terrain;
+    private boolean aPressed = false;
+    private boolean dPressed = false;
+    private boolean wPressed = false;
+    private boolean sPressed = false;
+    private boolean shiftPressed = false;
+
+    private Tank player2;
     private boolean leftPressed = false;
     private boolean rightPressed = false;
     private boolean upPressed = false;
     private boolean downPressed = false;
+    private boolean enterPressed = false;
 
     private List<Missile> missiles = new ArrayList<>(); //lista przechowujaca wszystkie aktywne przyciski
-    private boolean enterPressed = false;
 
     @Override
     public void start(Stage primaryStage) {
@@ -38,6 +45,7 @@ public class HelloApplication extends Application {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
         scene.setOnKeyPressed(event -> {
+            // gracz 2
             if (event.getCode() == KeyCode.LEFT) {
                 leftPressed = true;
             }
@@ -53,9 +61,26 @@ public class HelloApplication extends Application {
             if (event.getCode() == KeyCode.ENTER) {
                 enterPressed = true;
             }
+            // gracz 1
+            if (event.getCode() == KeyCode.A) {
+                aPressed = true;
+            }
+            if (event.getCode() == KeyCode.D) {
+                dPressed = true;
+            }
+            if (event.getCode() == KeyCode.W) {
+                wPressed = true;
+            }
+            if (event.getCode() == KeyCode.S) {
+                sPressed = true;
+            }
+            if (event.getCode() == KeyCode.SHIFT) {
+                shiftPressed = true;
+            }
         });
 
         scene.setOnKeyReleased(event -> {
+            // gracz 2
             if (event.getCode() == KeyCode.LEFT) {
                 leftPressed = false;
             }
@@ -70,6 +95,22 @@ public class HelloApplication extends Application {
             }
             if (event.getCode() == KeyCode.ENTER) {
                 enterPressed = false;
+            }
+            // gracz 1
+            if (event.getCode() == KeyCode.A) {
+                aPressed = false;
+            }
+            if (event.getCode() == KeyCode.D) {
+                dPressed = false;
+            }
+            if (event.getCode() == KeyCode.W) {
+                wPressed = false;
+            }
+            if (event.getCode() == KeyCode.S) {
+                sPressed = false;
+            }
+            if (event.getCode() == KeyCode.SHIFT) {
+                shiftPressed = false;
             }
         });
 
@@ -89,7 +130,11 @@ public class HelloApplication extends Application {
             }
         };
 
-        player1 = new Tank(400, 300);
+        // start gracza 1: pozycja X=100, tank1, lufa patrzy w prawo (kąt 0)
+        player1 = new Tank(100, 100, "file:assets/tank1.png", 0, 6);
+
+        // start gracza 2: pozycja X=600, tank2, lufa patrzy w lewo (kąt 180)
+        player2 = new Tank(600, 100, "file:assets/tank2.png", 180, -6);
         terrain = new Terrain(WIDTH);
 
         timer.start();
@@ -97,21 +142,23 @@ public class HelloApplication extends Application {
 
     // Metoda do aktualizacji logiki i fizyki
     private void update() {
-        if (leftPressed){
+
+        // GRACZ 1 STEROWANIE i STRZAL
+        if (aPressed){
             player1.moveLeft();
         }
-        if (rightPressed){
+        if (dPressed){
             player1.moveRight();
         }
-        if (upPressed){
+        if (wPressed){
             player1.aimUp();
         }
-        if (downPressed){
+        if (sPressed){
             player1.aimDown();
         }
         // 1. Logika strzału - zabezpieczenie by nie strzelac ciaglym strumieniem,
         // na razie dla uproszczenia wystrzeli, gdy trzymasz spację)
-        if (enterPressed){
+        if (shiftPressed){
             Missile newMissile = new Missile(
                     player1.getShootX(),               // Dokładny punkt X z końca lufy
                     player1.getShootY(),               // Dokładny punkt Y z końca lufy
@@ -119,8 +166,7 @@ public class HelloApplication extends Application {
                     10                                 // Moc strzału
             );
             missiles.add(newMissile);
-
-            enterPressed = false; //reset zeby wystrzelic tylko jeden pocisk
+            shiftPressed = false; //reset zeby wystrzelic tylko jeden pocisk
         }
         //aktualizacja wszystkich pociskow na liscie
         for (Missile m : missiles){
@@ -128,6 +174,39 @@ public class HelloApplication extends Application {
         }
         missiles.removeIf(m -> m.hasCollidedWithGround(terrain) || m.getY() > HEIGHT);
 
+        // GRACZ 2 STEROWANIE i STRZAL
+        if (leftPressed){
+            player2.moveLeft();
+        }
+        if (rightPressed){
+            player2.moveRight();
+        }
+        if (upPressed){
+            player2.aimUp();
+        }
+        if (downPressed){
+            player2.aimDown();
+        }
+        // 1. Logika strzału - zabezpieczenie by nie strzelac ciaglym strumieniem,
+        // na razie dla uproszczenia wystrzeli, gdy trzymasz spację)
+        if (enterPressed){
+            Missile newMissile = new Missile(
+                    player2.getShootX(),               // Dokładny punkt X z końca lufy
+                    player2.getShootY(),               // Dokładny punkt Y z końca lufy
+                    player2.getAbsoluteBarrelAngle(),  // Kąt lotu uwzględniający nachylenie góry!
+                    10                                 // Moc strzału
+            );
+            missiles.add(newMissile);
+            enterPressed = false; //reset zeby wystrzelic tylko jeden pocisk
+        }
+        // --- AKTUALIZACJA FIZYKI ---
+        player1.update(terrain);
+        player2.update(terrain);
+        //aktualizacja wszystkich pociskow na liscie
+        for (Missile m : missiles){
+            m.update(terrain);
+        }
+        missiles.removeIf(m -> m.hasCollidedWithGround(terrain) || m.getY() > HEIGHT);
     }
 
     // Metoda do rysowania klatki na ekranie
@@ -138,6 +217,7 @@ public class HelloApplication extends Application {
 
         terrain.draw(gc);
         player1.draw(gc);
+        player2.draw(gc);
 
         for (Missile m : missiles){
             m.draw(gc);

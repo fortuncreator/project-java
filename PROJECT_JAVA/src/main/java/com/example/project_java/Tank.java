@@ -34,6 +34,7 @@ public class Tank extends GameObject {
     // lufa i jej nachylenie
     private Image barrelImage;
     private double barrelAngle = 0;
+    private double barrelOffsetX; // przechowuje informacje z ktorej strony jest zawias lufy
 
     @Override
     public void draw(GraphicsContext gc) {
@@ -54,7 +55,7 @@ public class Tank extends GameObject {
             // wstawienie lufy
             gc.save();
 
-            gc.translate(6, -tankImage.getHeight() + 5);
+            gc.translate(this.barrelOffsetX, -tankImage.getHeight() + 5);
             gc.rotate(this.barrelAngle);
             gc.drawImage(barrelImage, 0, -(barrelImage.getHeight() / 2));
             gc.restore();
@@ -66,27 +67,60 @@ public class Tank extends GameObject {
 
     private Image tankImage;
 
-    public Tank(double startX, double startY) {
+    public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
-        tankImage = new Image("file:assets/tank1.png");
+        tankImage = new Image(imagePath);
         barrelImage = new Image("file:assets/barrel.png");
+
+        this.barrelAngle = startBarrelAngle;
+        this.barrelOffsetX = barrelOffsetX; // zapis przesuniecia zawiasu na lufe
+
+        // sprawdzam czy czolg patrzy w prawo na podstawie kata poczatkowego
+        this.facingRight = (startBarrelAngle == 0);
+
+        if(this.facingRight) {
+            this.MIN_ANGLE = startBarrelAngle - 80; // w gore dla prawego czolgu
+            this.MAX_ANGLE = startBarrelAngle + 20; // w dol dla prawego
+        }
+        else{
+            this.MIN_ANGLE = startBarrelAngle - 20; // w dol dla lewego czolgu
+            this.MAX_ANGLE = startBarrelAngle + 80; // w gore dla lewego
+        }
     }
 
     // maksymalne wartosci nachylenia lufy
-    private final double MIN_ANGLE = -80;
-    private final double MAX_ANGLE = 20;
+    private double MIN_ANGLE;
+    private double MAX_ANGLE;
+    private boolean facingRight;
 
     // podnoszenie i opuszczanie lufy
     public void aimUp(){
-        this.barrelAngle -= 1;
-        if(this.barrelAngle < MIN_ANGLE){
-            this.barrelAngle = MIN_ANGLE;
+        if(this.facingRight){
+            this.barrelAngle -= 1; // prawy czolg podnosi lufe odejmujac
+            if (this.barrelAngle < MIN_ANGLE) {
+                this.barrelAngle = MIN_ANGLE;
+            }
+        }
+        else{
+            this.barrelAngle += 1;//lewy czolg podnosi lufe DODAJAC
+            if(this.barrelAngle > MAX_ANGLE){
+                this.barrelAngle = MAX_ANGLE;
+            }
         }
     }
     public void aimDown(){
-        this.barrelAngle += 1;
-        if(this.barrelAngle > MAX_ANGLE){
-            this.barrelAngle = MAX_ANGLE;
+        if(this.facingRight){
+            this.barrelAngle += 1;
+            if (this.barrelAngle > MAX_ANGLE) {
+                this.barrelAngle = MAX_ANGLE;
+            }
+
+        }
+        else{
+            this.barrelAngle -= 1;
+            if(this.barrelAngle < MIN_ANGLE){
+                this.barrelAngle = MIN_ANGLE;
+            }
         }
     }
     // ruch czolgu
@@ -107,7 +141,7 @@ public class Tank extends GameObject {
         double pivotY = this.y + tankImage.getHeight();
 
         // 2. Pozycja zawiasu (idealnie zgrana z Twoim gc.translate w metodzie draw!)
-        double localHingeX = 6;
+        double localHingeX = this.barrelOffsetX;
         double localHingeY = -tankImage.getHeight() + 5;
 
         // 3. Obliczamy pozycję zawiasu po przechyleniu czołgu
@@ -123,7 +157,7 @@ public class Tank extends GameObject {
         double pivotX = this.x + (tankImage.getWidth() / 2);
         double pivotY = this.y + tankImage.getHeight();
 
-        double localHingeX = 6;
+        double localHingeX = this.barrelOffsetX;
         double localHingeY = -tankImage.getHeight() + 5;
 
         double tankAngleRad = Math.toRadians(this.angle);
