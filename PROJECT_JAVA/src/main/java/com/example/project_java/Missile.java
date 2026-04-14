@@ -57,4 +57,13 @@ public class Missile extends GameObject implements Collidable{
 
         return this.y >=groundY;
     }
+    public boolean hasCollidedWithTank(Tank enemy) {
+        // liczenie odleglosci miedzy pociskiem a srodkiem czolgu
+        double dx = this.x - enemy.getCenterX();
+        double dy = this.y - enemy.getCenterY();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        return distance < 20;
+    }
+
 }

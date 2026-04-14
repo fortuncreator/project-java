@@ -66,6 +66,7 @@ public class Tank extends GameObject {
     protected double angle = 0;
 
     private Image tankImage;
+    private int lives = 3; // start z 3 zyciami
 
     public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
@@ -87,6 +88,25 @@ public class Tank extends GameObject {
             this.MAX_ANGLE = startBarrelAngle + 80; // w gore dla lewego
         }
     }
+
+    public void takeDamage(){
+        this.lives--;
+        System.out.println("Czolg oberwal, zostalo zyc:" + this.lives);
+    }
+    public int getLives() {
+        return this.lives;
+    }
+    public boolean isDead() {
+        return this.lives <= 0;
+    }
+    // hitboxy ( zwraca srodek czolgu do obliczen kolizji )
+    public double getCenterX() {
+        return this.x + (tankImage.getWidth() / 2);
+    }
+    public double getCenterY() {
+        return this.y + (tankImage.getHeight() / 2);
+    }
+
 
     // maksymalne wartosci nachylenia lufy
     private double MIN_ANGLE;

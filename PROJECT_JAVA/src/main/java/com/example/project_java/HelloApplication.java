@@ -168,11 +168,28 @@ public class HelloApplication extends Application {
             missiles.add(newMissile);
             shiftPressed = false; //reset zeby wystrzelic tylko jeden pocisk
         }
-        //aktualizacja wszystkich pociskow na liscie
-        for (Missile m : missiles){
+        // lista pomocnicza na pociski ktore wybuchly i trzeba je usunac
+        List<Missile> missilesToRemove = new ArrayList<>();
+
+        for (Missile m : missiles) {
             m.update(terrain);
+
+            // sprawdzamy trafienie w gracza 1
+            if(!player1.isDead() && m.hasCollidedWithTank(player1)){
+                player1.takeDamage();
+                missilesToRemove.add(m); // pocisk do usuniecia
+            }
+            // sprawdzamy trafienie w gracza 2
+            if(!player2.isDead() && m.hasCollidedWithTank(player2)){
+                player2.takeDamage();
+                missilesToRemove.add(m);
+            }
+            if(m.hasCollidedWithGround(terrain)){
+                missilesToRemove.add(m);
+            }
         }
-        missiles.removeIf(m -> m.hasCollidedWithGround(terrain) || m.getY() > HEIGHT);
+        // fizycznie usuwamy wszystkie trafione i zniszczone pociski z gry
+        missiles.removeAll(missilesToRemove);
 
         // GRACZ 2 STEROWANIE i STRZAL
         if (leftPressed){
@@ -216,11 +233,22 @@ public class HelloApplication extends Application {
         gc.fillRect(0, 0, WIDTH, HEIGHT);
 
         terrain.draw(gc);
-        player1.draw(gc);
-        player2.draw(gc);
 
         for (Missile m : missiles){
             m.draw(gc);
+        }
+
+        // tymczasowy HUD
+        gc.setFill(Color.BLACK);
+        gc.fillText("Gracz 1: " + player1.getLives() + "HP", 20, 30);
+        gc.fillText("Gracz 2: " + player2.getLives() + "HP", WIDTH - 120, 30);
+
+        // jesli ktos nie zyje to go nie rysuj
+        if (!player1.isDead()){
+            player1.draw(gc);
+        }
+        if (!player2.isDead()){
+            player2.draw(gc);
         }
     }
 }
