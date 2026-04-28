@@ -9,6 +9,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.scene.image.Image;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,8 +32,10 @@ public class HelloApplication extends Application {
     private boolean upPressed = false;
     private boolean downPressed = false;
     private boolean enterPressed = false;
-
     private List<Missile> missiles = new ArrayList<>(); //lista przechowujaca wszystkie aktywne przyciski
+    private Image heartImage;
+    private boolean isPlayer1Turn = true;
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -137,6 +140,8 @@ public class HelloApplication extends Application {
         player2 = new Tank(600, 100, "file:assets/tank2.png", 180, -6);
         terrain = new Terrain(WIDTH);
 
+        heartImage = new Image("file:assets/heart.png");
+
         timer.start();
     }
 
@@ -232,23 +237,50 @@ public class HelloApplication extends Application {
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
 
+        // ... (wyżej masz gc.fillRect do czyszczenia tła) ...
+
         terrain.draw(gc);
 
-        for (Missile m : missiles){
+        // RYSOWANIE CZOŁGÓW (Tylko jeśli żyją)
+        if (!player1.isDead()) {
+            player1.draw(gc);
+        }
+        if (!player2.isDead()) {
+            player2.draw(gc);
+        }
+
+        for (Missile m : missiles) {
             m.draw(gc);
         }
 
-        // tymczasowy HUD
-        gc.setFill(Color.BLACK);
-        gc.fillText("Gracz 1: " + player1.getLives() + "HP", 20, 30);
-        gc.fillText("Gracz 2: " + player2.getLives() + "HP", WIDTH - 120, 30);
-
-        // jesli ktos nie zyje to go nie rysuj
-        if (!player1.isDead()){
-            player1.draw(gc);
+        // ==========================================
+        // HUD: RYSOWANIE SERDUSZEK (Zamiast brzydkiego tekstu!)
+        // ==========================================
+        // Życia Gracza 1 (lewy górny róg)
+        for (int i = 0; i < player1.getLives(); i++) {
+            gc.drawImage(heartImage, 20 + (i * 35), 20);
         }
-        if (!player2.isDead()){
-            player2.draw(gc);
+
+        // Życia Gracza 2 (prawy górny róg)
+        for (int i = 0; i < player2.getLives(); i++) {
+            gc.drawImage(heartImage, (WIDTH - 50) - (i * 35), 20);
+        }
+
+        // ==========================================
+        // EKRAN KOŃCOWY (GAME OVER)
+        // ==========================================
+        if (player1.isDead() || player2.isDead()) {
+            gc.save(); // Zapisujemy "normalny" stan malarza (żeby nie psuł HUDu w tle)
+
+            gc.setFill(Color.DARKRED);
+            gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 48));
+
+            String winnerText = player1.isDead() ? "GRACZ 2 WYGRYWA!" : "GRACZ 1 WYGRYWA!";
+
+            // Rysujemy wielki tekst
+            gc.fillText(winnerText, WIDTH / 2 - 220, HEIGHT / 2);
+
+            gc.restore(); // Przywracamy malarzowi jego domyślny, mały pędzel!
         }
     }
 }
