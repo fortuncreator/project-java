@@ -67,6 +67,9 @@ public class Tank extends GameObject {
 
     private Image tankImage;
     private int lives = 3; // start z 3 zyciami
+    private double fuel = 200; // start z pelnym bakiem
+    private double MAX_FUEL = 200;
+    private double MIN_FUEL = 0;
 
     public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
@@ -145,10 +148,16 @@ public class Tank extends GameObject {
     }
     // ruch czolgu
     public void moveLeft(){
-        this.x -= 2;
+        if (this.fuel > 0){
+            this.fuel -= 1.5; // spalanie paliwa
+            this.x -= 2;
+        }
     }
     public void moveRight(){
-        this.x += 2;
+        if (this.fuel > 0) {
+            this.fuel -= 1.5;
+            this.x += 2;
+        }
     }
 
     public double getAbsoluteBarrelAngle() {
@@ -185,5 +194,15 @@ public class Tank extends GameObject {
 
         double absAngleRad = Math.toRadians(getAbsoluteBarrelAngle());
         return hingeY + (barrelImage.getWidth() * Math.sin(absAngleRad));
+    }
+
+    public void resetFuel(){
+        this.fuel = MAX_FUEL;
+    }
+    public double getFuel() {
+        return this.fuel;
+    }
+    public double getMaxFuel() {
+        return this.MAX_FUEL;
     }
 }

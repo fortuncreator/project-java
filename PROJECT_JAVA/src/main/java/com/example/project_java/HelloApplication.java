@@ -163,6 +163,7 @@ public class HelloApplication extends Application {
                     missiles.add(newMissile);
                     shiftPressed = false;
                     isPlayer1Turn = false; // Zmiana tury!
+                    player2.resetFuel(); // dodanie paliwa gracza 2
                 }
             }
             // TURA GRACZA 2
@@ -177,6 +178,7 @@ public class HelloApplication extends Application {
                     missiles.add(newMissile);
                     enterPressed = false;
                     isPlayer1Turn = true; // Zmiana tury!
+                    player1.resetFuel(); // dodanie paliwa gracza 1
                 }
             }
         }
@@ -239,9 +241,9 @@ public class HelloApplication extends Application {
             m.draw(gc);
         }
 
-        // ==========================================
-        // HUD: RYSOWANIE SERDUSZEK (Zamiast brzydkiego tekstu!)
-        // ==========================================
+
+        // RYSOWANIE SERDUSZEK
+
         // Życia Gracza 1 (lewy górny róg)
         for (int i = 0; i < player1.getLives(); i++) {
             gc.drawImage(heartImage, 20 + (i * 35), 20);
@@ -252,9 +254,67 @@ public class HelloApplication extends Application {
             gc.drawImage(heartImage, (WIDTH - 50) - (i * 35), 20);
         }
 
-        // ==========================================
+        // PASEK PALIWA
+
+        // GRACZ 1
+        if (!player1.isDead()) {
+            // 1. TŁO I CZARNE OBRAMOWANIE
+            gc.setStroke(Color.rgb(20, 20, 20)); // Ciemnoszary / czarny kolor obramowania
+            gc.setLineWidth(2.0); // Lekka grubość
+
+            // Rysujemy obramowanie prostokąta, który ma rozmiar MAX_FUEL
+            gc.strokeRect(20, 60, player1.getMaxFuel(), 10);
+
+            // Wypełniamy tło (czarne, półprzezroczyste, żeby nie zasłaniało terenu)
+            gc.setFill(Color.rgb(0, 0, 0, 0.4));
+            gc.fillRect(20, 60, player1.getMaxFuel(), 10);
+
+            // 2. OBLICZANIE KOLORU GRADIENTU (Z Javy 1.0 -> 0.0)
+            double perc1 = player1.getFuel() / player1.getMaxFuel();
+            Color c1;
+            if (isPlayer1Turn) {
+                // MAGIA HSB: Gradient zielony (120) -> pomarańczowy (60) -> czerwony (0)
+                c1 = Color.hsb(perc1 * 120, 1.0, 1.0);
+            } else {
+                c1 = Color.GRAY; // Nieaktywny
+            }
+
+            // 3. WYPEŁNIENIE AKTYWNEGO PALIWA
+            gc.setFill(c1);
+            gc.fillRect(20, 60, player1.getFuel(), 10);
+        }
+
+        // GRACZ 2 (Prawa góra)
+        if (!player2.isDead()) {
+            // Obliczamy punkt startowy (lewy róg paska) tak, żeby zmieścił się MAX_FUEL od prawej krawędzi
+            // Przykładowo: 800 (Width) - 20 (Margin) - 200 (MAX_FUEL) = 580
+            double startX2 = (WIDTH - 20) - player2.getMaxFuel();
+
+            // 1. TŁO I CZARNE OBRAMOWANIE (MAX_FUEL)
+            gc.setStroke(Color.rgb(20, 20, 20));
+            gc.setLineWidth(2.0);
+            gc.strokeRect(startX2, 60, player2.getMaxFuel(), 10);
+
+            gc.setFill(Color.rgb(0, 0, 0, 0.4));
+            gc.fillRect(startX2, 60, player2.getMaxFuel(), 10);
+
+            // 2. OBLICZANIE KOLORU (Identyczna matematyka HSB)
+            double perc2 = player2.getFuel() / player2.getMaxFuel();
+            Color c2;
+            if (!isPlayer1Turn) {
+                c2 = Color.hsb(perc2 * 120, 1.0, 1.0);
+            } else {
+                c2 = Color.GRAY;
+            }
+
+            // 3. WYPEŁNIENIE PALIWA (Napełnia się klasycznie od startX2 w PRAWO, używając dodatniej szerokości)
+            gc.setFill(c2);
+            // Używamy gc.getFuel(), czyli dodatniej wartości. Pasek będzie maleć w LEWĄ stronę (odkrywać czarne tło po prawej).
+            gc.fillRect(startX2, 60, player2.getFuel(), 10);
+        }
+
         // EKRAN KOŃCOWY (GAME OVER)
-        // ==========================================
+
         if (player1.isDead() || player2.isDead()) {
             gc.save(); // Zapisujemy "normalny" stan malarza (żeby nie psuł HUDu w tle)
 
