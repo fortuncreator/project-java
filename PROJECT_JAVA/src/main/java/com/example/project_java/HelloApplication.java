@@ -148,32 +148,43 @@ public class HelloApplication extends Application {
     // Metoda do aktualizacji logiki i fizyki
     private void update() {
 
-        // GRACZ 1 STEROWANIE i STRZAL
-        if (aPressed){
-            player1.moveLeft();
+        // 1. SYSTEM TUR I STEROWANIE
+        if (missiles.isEmpty() && !player1.isDead() && !player2.isDead()) {
+
+            // TURA GRACZA 1
+            if (isPlayer1Turn) {
+                if (aPressed) player1.moveLeft();
+                if (dPressed) player1.moveRight();
+                if (wPressed) player1.aimUp();
+                if (sPressed) player1.aimDown();
+
+                if (shiftPressed) {
+                    Missile newMissile = new Missile(player1.getShootX(), player1.getShootY(), player1.getAbsoluteBarrelAngle(), 10);
+                    missiles.add(newMissile);
+                    shiftPressed = false;
+                    isPlayer1Turn = false; // Zmiana tury!
+                }
+            }
+            // TURA GRACZA 2
+            else {
+                if (leftPressed) player2.moveLeft();
+                if (rightPressed) player2.moveRight();
+                if (upPressed) player2.aimUp();
+                if (downPressed) player2.aimDown();
+
+                if (enterPressed) {
+                    Missile newMissile = new Missile(player2.getShootX(), player2.getShootY(), player2.getAbsoluteBarrelAngle(), 10);
+                    missiles.add(newMissile);
+                    enterPressed = false;
+                    isPlayer1Turn = true; // Zmiana tury!
+                }
+            }
         }
-        if (dPressed){
-            player1.moveRight();
-        }
-        if (wPressed){
-            player1.aimUp();
-        }
-        if (sPressed){
-            player1.aimDown();
-        }
-        // 1. Logika strzału - zabezpieczenie by nie strzelac ciaglym strumieniem,
-        // na razie dla uproszczenia wystrzeli, gdy trzymasz spację)
-        if (shiftPressed){
-            Missile newMissile = new Missile(
-                    player1.getShootX(),               // Dokładny punkt X z końca lufy
-                    player1.getShootY(),               // Dokładny punkt Y z końca lufy
-                    player1.getAbsoluteBarrelAngle(),  // Kąt lotu uwzględniający nachylenie góry!
-                    10                                 // Moc strzału
-            );
-            missiles.add(newMissile);
-            shiftPressed = false; //reset zeby wystrzelic tylko jeden pocisk
-        }
-        // lista pomocnicza na pociski ktore wybuchly i trzeba je usunac
+
+        // 2. FIZYKA CZOŁGÓW (Grawitacja działa zawsze, nawet jak to nie ich tura)
+        player1.update(terrain);
+        player2.update(terrain);
+
         List<Missile> missilesToRemove = new ArrayList<>();
 
         for (Missile m : missiles) {
@@ -195,51 +206,26 @@ public class HelloApplication extends Application {
         }
         // fizycznie usuwamy wszystkie trafione i zniszczone pociski z gry
         missiles.removeAll(missilesToRemove);
-
-        // GRACZ 2 STEROWANIE i STRZAL
-        if (leftPressed){
-            player2.moveLeft();
-        }
-        if (rightPressed){
-            player2.moveRight();
-        }
-        if (upPressed){
-            player2.aimUp();
-        }
-        if (downPressed){
-            player2.aimDown();
-        }
-        // 1. Logika strzału - zabezpieczenie by nie strzelac ciaglym strumieniem,
-        // na razie dla uproszczenia wystrzeli, gdy trzymasz spację)
-        if (enterPressed){
-            Missile newMissile = new Missile(
-                    player2.getShootX(),               // Dokładny punkt X z końca lufy
-                    player2.getShootY(),               // Dokładny punkt Y z końca lufy
-                    player2.getAbsoluteBarrelAngle(),  // Kąt lotu uwzględniający nachylenie góry!
-                    10                                 // Moc strzału
-            );
-            missiles.add(newMissile);
-            enterPressed = false; //reset zeby wystrzelic tylko jeden pocisk
-        }
-        // --- AKTUALIZACJA FIZYKI ---
-        player1.update(terrain);
-        player2.update(terrain);
-        //aktualizacja wszystkich pociskow na liscie
-        for (Missile m : missiles){
-            m.update(terrain);
-        }
-        missiles.removeIf(m -> m.hasCollidedWithGround(terrain) || m.getY() > HEIGHT);
     }
 
     // Metoda do rysowania klatki na ekranie
     private void draw(GraphicsContext gc) {
-        // Czyścimy ekran co klatkę (rysujemy błękitne niebo)
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
-
-        // ... (wyżej masz gc.fillRect do czyszczenia tła) ...
-
         terrain.draw(gc);
+
+        // WSKAZNIK TURY
+        if (!player1.isDead() && !player2.isDead()) {
+            gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 24));
+
+            if (isPlayer1Turn) {
+                gc.setFill(Color.DARKBLUE);
+                gc.fillText("TURA: GRACZ 1", WIDTH / 2 - 100, 40);
+            } else {
+                gc.setFill(Color.DARKRED);
+                gc.fillText("TURA: GRACZ 2", WIDTH / 2 - 100, 40);
+            }
+        }
 
         // RYSOWANIE CZOŁGÓW (Tylko jeśli żyją)
         if (!player1.isDead()) {
