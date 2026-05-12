@@ -147,16 +147,36 @@ public class Tank extends GameObject {
         }
     }
     // ruch czolgu
-    public void moveLeft(){
+    public void moveLeft(Terrain terrain){
         if (this.fuel > 0){
+            double nextX = this.x -2;
+            //zabezpieczenie lewej krawedzi ekranu
+            if(nextX < 0) return;
+            //zabezpieczenie przed pionowa wspinaczka
+            int leftBumper = 0;
+            double currentY = terrain.getHeight((int) (this.x + leftBumper));
+            double nextY = terrain.getHeight((int) (nextX + leftBumper));
+            //jesli nastepny krok jest o wiecej niz 4 piksele wyzej to blokada
+            if(currentY - nextY > 16) return;
+
             this.fuel -= 1.5; // spalanie paliwa
-            this.x -= 2;
+            this.x = nextX;
         }
     }
-    public void moveRight(){
+    public void moveRight(Terrain terrain, double screenWidth){
         if (this.fuel > 0) {
-            this.fuel -= 1.5;
-            this.x += 2;
+            double nextX = this.x +2;
+            //zabezpieczenie prawej krawedzi ekranu
+            if(nextX > screenWidth - 24) return;
+            //zabezpieczenie przed pionowa wspinaczka
+            int rightBumper = 16;
+            double currentY = terrain.getHeight((int) (this.x) + rightBumper);
+            double nextY = terrain.getHeight((int) (nextX +  rightBumper));
+            //jesli nastepny krok jest o wiecej niz 4 piksele wyzej to blokada
+            if(currentY - nextY > 16) return;
+
+            this.fuel -= 1.5; // spalanie paliwa
+            this.x = nextX;
         }
     }
 
@@ -204,5 +224,11 @@ public class Tank extends GameObject {
     }
     public double getMaxFuel() {
         return this.MAX_FUEL;
+    }
+
+    public void dieInstantly(){
+        this.lives = 0;
+        this.fuel = 0;
+        System.out.println("Czolg spadl w przepasc!");
     }
 }

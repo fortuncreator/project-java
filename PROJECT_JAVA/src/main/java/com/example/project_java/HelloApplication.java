@@ -153,8 +153,8 @@ public class HelloApplication extends Application {
 
             // TURA GRACZA 1
             if (isPlayer1Turn) {
-                if (aPressed) player1.moveLeft();
-                if (dPressed) player1.moveRight();
+                if (aPressed) player1.moveLeft(terrain);
+                if (dPressed) player1.moveRight(terrain, WIDTH);
                 if (wPressed) player1.aimUp();
                 if (sPressed) player1.aimDown();
 
@@ -168,8 +168,8 @@ public class HelloApplication extends Application {
             }
             // TURA GRACZA 2
             else {
-                if (leftPressed) player2.moveLeft();
-                if (rightPressed) player2.moveRight();
+                if (leftPressed) player2.moveLeft(terrain);
+                if (rightPressed) player2.moveRight(terrain, WIDTH);
                 if (upPressed) player2.aimUp();
                 if (downPressed) player2.aimDown();
 
@@ -183,9 +183,17 @@ public class HelloApplication extends Application {
             }
         }
 
-        // 2. FIZYKA CZOŁGÓW (Grawitacja działa zawsze, nawet jak to nie ich tura)
+        // 2. FIZYKA CZOŁGÓW
         player1.update(terrain);
         player2.update(terrain);
+
+        // smierc w przepasci
+        if(player1.getY() > HEIGHT) {
+            player1.dieInstantly();
+        }
+        if(player2.getY() > HEIGHT) {
+            player2.dieInstantly();
+        }
 
         List<Missile> missilesToRemove = new ArrayList<>();
 
@@ -202,7 +210,12 @@ public class HelloApplication extends Application {
                 player2.takeDamage();
                 missilesToRemove.add(m);
             }
-            if(m.hasCollidedWithGround(terrain)){
+            if (m.hasCollidedWithGround(terrain)) {
+                // Pocisk uderzył w ziemię -> robimy krater o promieniu 40 pikseli!
+                terrain.createCrater(m.getX(), m.getY(), 40);
+                missilesToRemove.add(m);
+            } else if (m.getY() > HEIGHT || m.getX() < 0 || m.getX() > WIDTH) {
+                // Pocisk wyleciał za ekran (w kosmos) -> usuwamy go, żeby oddać turę drugiemu graczowi
                 missilesToRemove.add(m);
             }
         }

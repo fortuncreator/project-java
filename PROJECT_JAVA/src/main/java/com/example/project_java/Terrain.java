@@ -31,4 +31,22 @@ public class Terrain {
         // zwraca wysokosc ziemi w zadanym punkcie x
         return heights[x];
     }
+
+    public void createCrater(double impactX, double impactY, double radius){
+        //zabezpieczenie krawedzi ekranu zeby nie wyjsc poza tablice
+        int startX = (int) Math.max(0, impactX - radius);
+        int endX = (int) Math.min(heights.length - 1, impactX + radius);
+
+        for (int x = startX; x <= endX; x++) {
+            double distanceX = Math.abs(x - impactX);
+            //rownanie okregu na glebokosc krateru
+            double depth = Math.sqrt((radius * radius) - (distanceX * distanceX));
+            //os Y rosnie w dol, dno krateru Y pocisku + obliczona glebokosc
+            double craterBottomY = impactY + depth;
+
+            if(heights[x] < craterBottomY){
+                heights[x] = craterBottomY;
+            }
+        }
+    }
 }
