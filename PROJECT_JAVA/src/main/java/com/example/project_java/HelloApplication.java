@@ -40,12 +40,17 @@ public class HelloApplication extends Application {
     private enum GameState { MENU, PLAYING };
     private GameState state = GameState.MENU; // start w menu
 
-    private double startBtnWidth = 200;
-    private double startBtnHeight = 60;
+    private double startBtnWidth = 260;
+    private double startBtnHeight = 80;
     private double startBtnX = 0;
     private double startBtnY = 300;
     private boolean isHoveringStart = false; // czy myszka jest na przycisku
+    private double hoverProgress = 0.0;
 
+    // --- TABLICA WYNIKÓW ---
+    private int scorePlayer1 = 0;
+    private int scorePlayer2 = 0;
+    private boolean roundEnded = false; // Zapobiega nabijaniu punktów co klatkę
 
     @Override
     public void start(Stage primaryStage) {
@@ -185,7 +190,21 @@ public class HelloApplication extends Application {
     // Metoda do aktualizacji logiki i fizyki
     private void update() {
 
-        if(state != GameState.PLAYING) return; // zatrzymanie gry w menu
+        // animacje menu
+        if (state == GameState.MENU) {
+            // Zakładając, że gra działa w 60 FPS, dodanie 0.05 co klatkę
+            // daje nam dojście od 0 do 1 w 20 klatek, czyli ok. 333ms (idealnie!)
+            if (isHoveringStart && hoverProgress < 1.0) {
+                hoverProgress += 0.05;
+            } else if (!isHoveringStart && hoverProgress > 0.0) {
+                hoverProgress -= 0.05;
+            }
+
+            // Zabezpieczenie, żeby progres nie wyszedł poza 0.0 - 1.0
+            hoverProgress = Math.max(0.0, Math.min(1.0, hoverProgress));
+
+            return; // Ważne: Blokujemy kod fizyki i czołgów, wychodząc z metody!
+        }
 
         // 1. SYSTEM TUR I STEROWANIE
         if (missiles.isEmpty() && !player1.isDead() && !player2.isDead()) {
@@ -260,6 +279,18 @@ public class HelloApplication extends Application {
         }
         // fizycznie usuwamy wszystkie trafione i zniszczone pociski z gry
         missiles.removeAll(missilesToRemove);
+
+        // przyznawanie punktow
+        if(!roundEnded){
+            if (player1.isDead()) {
+                scorePlayer2++;
+                roundEnded = true;
+            }
+            else if (player2.isDead()) {
+                scorePlayer1++;
+                roundEnded = true;
+            }
+        }
     }
 
     private void resetGame(){
@@ -268,6 +299,8 @@ public class HelloApplication extends Application {
         isPlayer1Turn = true;
         player1.resetState(100, 100);
         player2.resetState(600, 100);
+
+        roundEnded = false;
     }
 
     // Metoda do rysowania klatki na ekranie
@@ -282,17 +315,38 @@ public class HelloApplication extends Application {
         gc.fillRect(0, 0, WIDTH, HEIGHT);
         terrain.draw(gc);
 
-        // WSKAZNIK TURY
-        if (!player1.isDead() && !player2.isDead()) {
-            gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 24));
+        // ==========================================
+        // SCOREBOARD (Tablica wyników na środku)
+        // ==========================================
+        gc.setFill(Color.rgb(40, 40, 40)); // Ciemnoszary
+        gc.setFont(javafx.scene.text.Font.font("Impact", javafx.scene.text.FontWeight.BOLD, 46));
 
-            if (isPlayer1Turn) {
-                gc.setFill(Color.DARKBLUE);
-                gc.fillText("TURA: GRACZ 1", WIDTH / 2 - 100, 40);
-            } else {
-                gc.setFill(Color.DARKRED);
-                gc.fillText("TURA: GRACZ 2", WIDTH / 2 - 100, 40);
-            }
+        // Zależnie od tego, jakie masz wymiary ekranu, WIDTH/2 - 45 powinno być na środku
+        gc.fillText(scorePlayer1 + " : " + scorePlayer2, WIDTH / 2 - 45, 50);
+
+        // ==========================================
+        // NAPISY GRACZY I ANIMOWANE STRZAŁKI (Pod paliwem)
+        // ==========================================
+        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 20));
+
+        // Matematyczna magia dla płynnej animacji strzałki
+        // Math.sin z czasu zwraca wartość płynnie falującą od -1.0 do 1.0. Mnożymy to razy 6 pikseli wychylenia.
+        double time = System.currentTimeMillis() / 150.0;
+        double bounceOffset = Math.sin(time) * 6;
+
+        // --- GRACZ 1 ---
+        gc.setFill(Color.DARKBLUE);
+        gc.fillText("GRACZ 1", 20, 95);
+        // Jeśli jest tura gracza 1 i nikt nie zginął - rysuj strzałkę!
+        if (isPlayer1Turn && !roundEnded) {
+            gc.fillText("◀", 115 + bounceOffset, 95); // Strzałka celuje w napis i pulsuje
+        }
+
+        // --- GRACZ 2 ---
+        gc.setFill(Color.DARKRED);
+        gc.fillText("GRACZ 2", WIDTH - 110, 95);
+        if (!isPlayer1Turn && !roundEnded) {
+            gc.fillText("▶", WIDTH - 145 - bounceOffset, 95); // Strzałka celuje w napis i pulsuje
         }
 
         // RYSOWANIE CZOŁGÓW (Tylko jeśli żyją)
@@ -397,36 +451,46 @@ public class HelloApplication extends Application {
     }
 
     private void drawMenu(GraphicsContext gc) {
-        // Tło menu (np. to samo niebo co w grze)
+        // Tło
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // TYTUŁ (Placeholder - dopóki nie masz grafiki)
+        // Tytuł
         gc.setFill(Color.DARKRED);
         gc.setFont(javafx.scene.text.Font.font("Impact", javafx.scene.text.FontWeight.BOLD, 80));
-        // Wyśrodkowanie "na oko", możesz to potem dostosować
         gc.fillText("TANK WARS", WIDTH / 2 - 180, 150);
 
-        // PRZYCISK START (Logika powiększania)
-        double currentWidth = isHoveringStart ? startBtnWidth + 20 : startBtnWidth;
-        double currentHeight = isHoveringStart ? startBtnHeight + 10 : startBtnHeight;
-        // Odejmujemy różnicę, żeby przycisk powiększał się ze SRODKA, a nie w prawo/dół
-        double currentX = startBtnX - (currentWidth - startBtnWidth) / 2;
-        double currentY = startBtnY - (currentHeight - startBtnHeight) / 2;
+        // 1. PŁYNNA ZMIANA ROZMIARU (Mnożymy przyrost przez nasz "progress")
+        // Maksymalnie przycisk urośnie o 30px na szerokość i 15px na wysokość
+        double currentWidth = startBtnWidth + (30 * hoverProgress);
+        double currentHeight = startBtnHeight + (15 * hoverProgress);
 
-        // Rysujemy zaokrąglony przycisk (fillRoundRect)
-        gc.setFill(isHoveringStart ? Color.DARKORANGE : Color.ORANGE);
-        gc.fillRoundRect(currentX, currentY, currentWidth, currentHeight, 20, 20); // 20 to promień zaokrąglenia
+        // Zawsze na środku
+        double currentX = startBtnX - ((currentWidth - startBtnWidth) / 2);
+        double currentY = startBtnY - ((currentHeight - startBtnHeight) / 2);
 
-        // Czarne obramowanie przycisku
+        // 2. PŁYNNE PRZEJŚCIE KOLORU
+        Color startColor = Color.ORANGE;
+        Color hoverColor = Color.DARKORANGE;
+        // Metoda interpolate sama miesza kolory w zależności od progressu (0.0 - 1.0)!
+        gc.setFill(startColor.interpolate(hoverColor, hoverProgress));
+
+        gc.fillRoundRect(currentX, currentY, currentWidth, currentHeight, 25, 25);
+
+        // Obramowanie
         gc.setStroke(Color.BLACK);
-        gc.setLineWidth(3);
-        gc.strokeRoundRect(currentX, currentY, currentWidth, currentHeight, 20, 20);
+        gc.setLineWidth(4);
+        gc.strokeRoundRect(currentX, currentY, currentWidth, currentHeight, 25, 25);
 
-        // Napis na przycisku
+        // 3. PŁYNNA ZMIANA CZCIONKI
         gc.setFill(Color.WHITE);
-        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, isHoveringStart ? 36 : 30));
-        gc.fillText("START", WIDTH / 2 - (isHoveringStart ? 55 : 45), startBtnY + 42);
+        // Czcionka płynnie rośnie z 40 do 48
+        double fontSize = 40 + (8 * hoverProgress);
+        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, fontSize));
+
+        // Płynne centrowanie tekstu (też zależy od progressu)
+        double textOffset = 65 + (5 * hoverProgress);
+        gc.fillText("START", WIDTH / 2 - textOffset, startBtnY + 54 + (3 * hoverProgress));
     }
 
 }
