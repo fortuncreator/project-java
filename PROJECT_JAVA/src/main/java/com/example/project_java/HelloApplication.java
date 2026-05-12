@@ -36,6 +36,16 @@ public class HelloApplication extends Application {
     private Image heartImage;
     private boolean isPlayer1Turn = true;
 
+    // maszyna stanow
+    private enum GameState { MENU, PLAYING };
+    private GameState state = GameState.MENU; // start w menu
+
+    private double startBtnWidth = 200;
+    private double startBtnHeight = 60;
+    private double startBtnX = 0;
+    private double startBtnY = 300;
+    private boolean isHoveringStart = false; // czy myszka jest na przycisku
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -80,6 +90,10 @@ public class HelloApplication extends Application {
             if (event.getCode() == KeyCode.SHIFT) {
                 shiftPressed = true;
             }
+            if (event.getCode() == KeyCode.R) {
+                    resetGame();
+            }
+
         });
 
         scene.setOnKeyReleased(event -> {
@@ -117,6 +131,29 @@ public class HelloApplication extends Application {
             }
         });
 
+        // Wyśrodkowanie X przycisku na podstawie zmiennej WIDTH
+        startBtnX = WIDTH / 2 - startBtnWidth / 2;
+
+        // 1. Sprawdzanie, czy myszka najechała na przycisk (Hover)
+        scene.setOnMouseMoved(event -> {
+            if (state == GameState.MENU) {
+                double mouseX = event.getX();
+                double mouseY = event.getY();
+
+                // Prosty warunek sprawdzający, czy kursor jest wewnątrz prostokąta przycisku
+                isHoveringStart = (mouseX >= startBtnX && mouseX <= startBtnX + startBtnWidth &&
+                        mouseY >= startBtnY && mouseY <= startBtnY + startBtnHeight);
+            }
+        });
+
+        // 2. Kliknięcie w przycisk
+        scene.setOnMouseClicked(event -> {
+            if (state == GameState.MENU && isHoveringStart) {
+                state = GameState.PLAYING; // Przełączamy stan na GRĘ!
+                resetGame(); // Upewniamy się, że generujemy czystą mapę na start
+            }
+        });
+
         // Ustawienia głównego okna
         primaryStage.setTitle("Project JAVA");
         primaryStage.setScene(scene);
@@ -147,6 +184,8 @@ public class HelloApplication extends Application {
 
     // Metoda do aktualizacji logiki i fizyki
     private void update() {
+
+        if(state != GameState.PLAYING) return; // zatrzymanie gry w menu
 
         // 1. SYSTEM TUR I STEROWANIE
         if (missiles.isEmpty() && !player1.isDead() && !player2.isDead()) {
@@ -223,8 +262,22 @@ public class HelloApplication extends Application {
         missiles.removeAll(missilesToRemove);
     }
 
+    private void resetGame(){
+        terrain = new Terrain((int) WIDTH);
+        missiles.clear();
+        isPlayer1Turn = true;
+        player1.resetState(100, 100);
+        player2.resetState(600, 100);
+    }
+
     // Metoda do rysowania klatki na ekranie
     private void draw(GraphicsContext gc) {
+
+        if (state == GameState.MENU) {
+            drawMenu(gc);
+            return; // Kończymy rysowanie, żeby nie rysować mapy i czołgów pod menu!
+        }
+
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
         terrain.draw(gc);
@@ -342,4 +395,38 @@ public class HelloApplication extends Application {
             gc.restore(); // Przywracamy malarzowi jego domyślny, mały pędzel!
         }
     }
+
+    private void drawMenu(GraphicsContext gc) {
+        // Tło menu (np. to samo niebo co w grze)
+        gc.setFill(Color.LIGHTSKYBLUE);
+        gc.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // TYTUŁ (Placeholder - dopóki nie masz grafiki)
+        gc.setFill(Color.DARKRED);
+        gc.setFont(javafx.scene.text.Font.font("Impact", javafx.scene.text.FontWeight.BOLD, 80));
+        // Wyśrodkowanie "na oko", możesz to potem dostosować
+        gc.fillText("TANK WARS", WIDTH / 2 - 180, 150);
+
+        // PRZYCISK START (Logika powiększania)
+        double currentWidth = isHoveringStart ? startBtnWidth + 20 : startBtnWidth;
+        double currentHeight = isHoveringStart ? startBtnHeight + 10 : startBtnHeight;
+        // Odejmujemy różnicę, żeby przycisk powiększał się ze SRODKA, a nie w prawo/dół
+        double currentX = startBtnX - (currentWidth - startBtnWidth) / 2;
+        double currentY = startBtnY - (currentHeight - startBtnHeight) / 2;
+
+        // Rysujemy zaokrąglony przycisk (fillRoundRect)
+        gc.setFill(isHoveringStart ? Color.DARKORANGE : Color.ORANGE);
+        gc.fillRoundRect(currentX, currentY, currentWidth, currentHeight, 20, 20); // 20 to promień zaokrąglenia
+
+        // Czarne obramowanie przycisku
+        gc.setStroke(Color.BLACK);
+        gc.setLineWidth(3);
+        gc.strokeRoundRect(currentX, currentY, currentWidth, currentHeight, 20, 20);
+
+        // Napis na przycisku
+        gc.setFill(Color.WHITE);
+        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, isHoveringStart ? 36 : 30));
+        gc.fillText("START", WIDTH / 2 - (isHoveringStart ? 55 : 45), startBtnY + 42);
+    }
+
 }

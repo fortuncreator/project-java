@@ -69,7 +69,6 @@ public class Tank extends GameObject {
     private int lives = 3; // start z 3 zyciami
     private double fuel = 200; // start z pelnym bakiem
     private double MAX_FUEL = 200;
-    private double MIN_FUEL = 0;
 
     public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
@@ -229,6 +228,12 @@ public class Tank extends GameObject {
     public void dieInstantly(){
         this.lives = 0;
         this.fuel = 0;
-        System.out.println("Czolg spadl w przepasc!");
+    }
+
+    public void resetState(double startX, double startY){
+        this.x = startX;
+        this.y = startY;
+        this.lives = 3;
+        this.fuel = MAX_FUEL;
     }
 }
