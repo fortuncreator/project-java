@@ -34,7 +34,7 @@ public class HelloApplication extends Application {
     private boolean enterPressed = false;
     private List<Missile> missiles = new ArrayList<>(); //lista przechowujaca wszystkie aktywne przyciski
     private Image heartImage;
-    private boolean isPlayer1Turn = true;
+    private boolean isPlayer1Turn = Math.random() < 0.5;
 
     // maszyna stanow
     private enum GameState { MENU, PLAYING };
@@ -294,9 +294,9 @@ public class HelloApplication extends Application {
     }
 
     private void resetGame(){
-        terrain = new Terrain((int) WIDTH);
+        terrain = new Terrain(WIDTH);
         missiles.clear();
-        isPlayer1Turn = true;
+        isPlayer1Turn = Math.random() < 0.5;
         player1.resetState(100, 100);
         player2.resetState(600, 100);
 
@@ -315,22 +315,18 @@ public class HelloApplication extends Application {
         gc.fillRect(0, 0, WIDTH, HEIGHT);
         terrain.draw(gc);
 
-        // ==========================================
-        // SCOREBOARD (Tablica wyników na środku)
-        // ==========================================
+        // SCOREBOARD
         gc.setFill(Color.rgb(40, 40, 40)); // Ciemnoszary
         gc.setFont(javafx.scene.text.Font.font("Impact", javafx.scene.text.FontWeight.BOLD, 46));
 
         // Zależnie od tego, jakie masz wymiary ekranu, WIDTH/2 - 45 powinno być na środku
         gc.fillText(scorePlayer1 + " : " + scorePlayer2, WIDTH / 2 - 45, 50);
 
-        // ==========================================
+
         // NAPISY GRACZY I ANIMOWANE STRZAŁKI (Pod paliwem)
-        // ==========================================
         gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 20));
 
-        // Matematyczna magia dla płynnej animacji strzałki
-        // Math.sin z czasu zwraca wartość płynnie falującą od -1.0 do 1.0. Mnożymy to razy 6 pikseli wychylenia.
+        // animacja strzalki
         double time = System.currentTimeMillis() / 150.0;
         double bounceOffset = Math.sin(time) * 6;
 

@@ -54,7 +54,6 @@ public class Tank extends GameObject {
 
             // wstawienie lufy
             gc.save();
-
             gc.translate(this.barrelOffsetX, -tankImage.getHeight() + 5);
             gc.rotate(this.barrelAngle);
             gc.drawImage(barrelImage, 0, -(barrelImage.getHeight() / 2));
@@ -66,14 +65,18 @@ public class Tank extends GameObject {
     protected double angle = 0;
 
     private Image tankImage;
-    private int lives = 3; // start z 3 zyciami
-    private double fuel = 200; // start z pelnym bakiem
+    private int lives = 3;
+    private double fuel = 200;
     private double MAX_FUEL = 200;
 
     public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
-        tankImage = new Image(imagePath);
-        barrelImage = new Image("file:assets/barrel.png");
+        try {
+            tankImage = new Image(imagePath);
+            barrelImage = new Image("file:assets/barrel.png");
+        } catch (Exception e) {
+            System.err.println("Błąd podczas ładowania grafik czołgu: " + e.getMessage());
+        }
 
         this.barrelAngle = startBarrelAngle;
         this.barrelOffsetX = barrelOffsetX; // zapis przesuniecia zawiasu na lufe
@@ -186,13 +189,12 @@ public class Tank extends GameObject {
     public double getShootX() {
         // 1. Środek obrotu czołgu
         double pivotX = this.x + (tankImage.getWidth() / 2);
-        double pivotY = this.y + tankImage.getHeight();
 
-        // 2. Pozycja zawiasu (idealnie zgrana z Twoim gc.translate w metodzie draw!)
+        // 2. Pozycja zawiasu
         double localHingeX = this.barrelOffsetX;
         double localHingeY = -tankImage.getHeight() + 5;
 
-        // 3. Obliczamy pozycję zawiasu po przechyleniu czołgu
+        // 3. Obliczenie pozycji zawiasu przy przychyleniu czolgu
         double tankAngleRad = Math.toRadians(this.angle);
         double hingeX = pivotX + (localHingeX * Math.cos(tankAngleRad)) - (localHingeY * Math.sin(tankAngleRad));
 
@@ -202,7 +204,6 @@ public class Tank extends GameObject {
     }
 
     public double getShootY() {
-        double pivotX = this.x + (tankImage.getWidth() / 2);
         double pivotY = this.y + tankImage.getHeight();
 
         double localHingeX = this.barrelOffsetX;
