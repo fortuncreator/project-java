@@ -47,6 +47,12 @@ public class HelloApplication extends Application {
     private boolean isHoveringStart = false; // czy myszka jest na przycisku
     private double hoverProgress = 0.0;
 
+    private Image cloudImage;
+    private double gameCloudX = 100;
+    private double gameCloudY = 120;
+    private double menuCloud1X = 50, menuCloud1Y = 50;
+    private double menuCloud2X = 400, menuCloud2Y = 200;
+
     // --- TABLICA WYNIKÓW ---
     private int scorePlayer1 = 0;
     private int scorePlayer2 = 0;
@@ -184,12 +190,25 @@ public class HelloApplication extends Application {
         terrain = new Terrain(WIDTH);
 
         heartImage = new Image("file:assets/heart.png");
+        cloudImage = new Image("file:assets/cloud.png");
 
         timer.start();
     }
 
     // Metoda do aktualizacji logiki i fizyki
     private void update() {
+    // Ruch chmury w grze (wolniejszy)
+        gameCloudX += 0.3;
+        if (gameCloudX > WIDTH) gameCloudX = -150; // reset za lewą krawędź
+
+        // Ruch chmur w menu (każda z inną prędkością dla lepszego efektu)
+        if (state == GameState.MENU) {
+            menuCloud1X += 0.5;
+            if (menuCloud1X > WIDTH) menuCloud1X = -150;
+
+            menuCloud2X += 0.8;
+            if (menuCloud2X > WIDTH) menuCloud2X = -150;
+        }
 
         // animacje menu
         if (state == GameState.MENU) {
@@ -320,6 +339,8 @@ public class HelloApplication extends Application {
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
         terrain.draw(gc);
+
+        gc.drawImage(cloudImage, gameCloudX, gameCloudY, 180, 90);
 
         // SCOREBOARD
         gc.setFill(Color.rgb(40, 40, 40)); // Ciemnoszary
@@ -456,6 +477,9 @@ public class HelloApplication extends Application {
         // Tło
         gc.setFill(Color.LIGHTSKYBLUE);
         gc.fillRect(0, 0, WIDTH, HEIGHT);
+
+        gc.drawImage(cloudImage, menuCloud1X, menuCloud1Y, 150, 80);
+        gc.drawImage(cloudImage, menuCloud2X, menuCloud2Y, 200, 100);
 
         // Tytuł
         gc.setFill(Color.DARKRED);
