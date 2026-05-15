@@ -54,6 +54,7 @@ public class HelloApplication extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        GameConfig.loadSettings();
         // Tworzymy "płótno", na którym będziemy rysować naszą grę
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -253,32 +254,37 @@ public class HelloApplication extends Application {
             player2.dieInstantly();
         }
 
-        List<Missile> missilesToRemove = new ArrayList<>();
+        // ==========================================
+        // FIZYKA POCISKÓW (Z UŻYCIEM ITERATORA)
+        // ==========================================
+        java.util.Iterator<Missile> iterator = missiles.iterator();
 
-        for (Missile m : missiles) {
+        while (iterator.hasNext()) {
+            Missile m = iterator.next(); // Pobieramy kolejny pocisk
             m.update(terrain);
 
             // sprawdzamy trafienie w gracza 1
             if(!player1.isDead() && m.hasCollidedWithTank(player1)){
                 player1.takeDamage();
-                missilesToRemove.add(m); // pocisk do usuniecia
+                iterator.remove(); // BEZPOŚREDNIE USUNIĘCIE!
+                continue; // Przerywamy sprawdzanie tego pocisku i idziemy do następnego
             }
             // sprawdzamy trafienie w gracza 2
             if(!player2.isDead() && m.hasCollidedWithTank(player2)){
                 player2.takeDamage();
-                missilesToRemove.add(m);
+                iterator.remove();
+                continue;
             }
+
+            // sprawdzamy kolizję z ziemią
             if (m.hasCollidedWithGround(terrain)) {
-                // Pocisk uderzył w ziemię -> robimy krater o promieniu 40 pikseli!
                 terrain.createCrater(m.getX(), m.getY(), 40);
-                missilesToRemove.add(m);
+                iterator.remove();
             } else if (m.getY() > HEIGHT || m.getX() < 0 || m.getX() > WIDTH) {
-                // Pocisk wyleciał za ekran (w kosmos) -> usuwamy go, żeby oddać turę drugiemu graczowi
-                missilesToRemove.add(m);
+                // Pocisk wyleciał za ekran
+                iterator.remove();
             }
         }
-        // fizycznie usuwamy wszystkie trafione i zniszczone pociski z gry
-        missiles.removeAll(missilesToRemove);
 
         // przyznawanie punktow
         if(!roundEnded){

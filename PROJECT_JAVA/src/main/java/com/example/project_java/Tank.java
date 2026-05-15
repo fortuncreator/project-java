@@ -65,9 +65,9 @@ public class Tank extends GameObject {
     protected double angle = 0;
 
     private Image tankImage;
-    private int lives = 3;
-    private double fuel = 200;
-    private double MAX_FUEL = 200;
+    private int lives;
+    private double fuel;
+    private double MAX_FUEL;
 
     public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
         super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
@@ -77,6 +77,11 @@ public class Tank extends GameObject {
         } catch (Exception e) {
             System.err.println("Błąd podczas ładowania grafik czołgu: " + e.getMessage());
         }
+
+        //Pobieranie ustawień plikowych
+        this.lives = GameConfig.startingLives;
+        this.MAX_FUEL = GameConfig.maxFuel;
+        this.fuel = this.MAX_FUEL;
 
         this.barrelAngle = startBarrelAngle;
         this.barrelOffsetX = barrelOffsetX; // zapis przesuniecia zawiasu na lufe
@@ -234,7 +239,7 @@ public class Tank extends GameObject {
     public void resetState(double startX, double startY){
         this.x = startX;
         this.y = startY;
-        this.lives = 3;
+        this.lives = GameConfig.startingLives;
         this.fuel = MAX_FUEL;
     }
 }
