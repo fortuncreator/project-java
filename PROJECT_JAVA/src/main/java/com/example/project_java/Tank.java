@@ -39,26 +39,21 @@ public class Tank extends GameObject {
     @Override
     public void draw(GraphicsContext gc) {
         gc.save();
-
         // przesuniecie plotna na srodek-dol czolgu - tam gdzie gasienice dotykaja ziemi
         double pivotX = this.x + (tankImage.getWidth() / 2);
         double pivotY = this.y + tankImage.getHeight();
         gc.translate(pivotX, pivotY);
-
         // obrot
         gc.rotate(this.angle);
-
         // skoro nasz srodek (0,0) jest teraz na dole pośrodku,
         // rysujemy obrazek przesuniety w lewo o pol szerokosci i w gore o cala wysokosc
         gc.drawImage(tankImage, -(tankImage.getWidth() / 2), -tankImage.getHeight());
-
-            // wstawienie lufy
-            gc.save();
-            gc.translate(this.barrelOffsetX, -tankImage.getHeight() + 5);
-            gc.rotate(this.barrelAngle);
-            gc.drawImage(barrelImage, 0, -(barrelImage.getHeight() / 2));
-            gc.restore();
-
+        // wstawienie lufy
+        gc.save();
+        gc.translate(this.barrelOffsetX, -tankImage.getHeight() + 5);
+        gc.rotate(this.barrelAngle);
+        gc.drawImage(barrelImage, 0, -(barrelImage.getHeight() / 2));
+        gc.restore();
         gc.restore();
     }
 
@@ -192,18 +187,15 @@ public class Tank extends GameObject {
     }
 
     public double getShootX() {
-        // 1. Środek obrotu czołgu
+        // srodek obrotu czołgu
         double pivotX = this.x + (tankImage.getWidth() / 2);
-
-        // 2. Pozycja zawiasu
+        // pozycja zawiasu
         double localHingeX = this.barrelOffsetX;
         double localHingeY = -tankImage.getHeight() + 5;
-
-        // 3. Obliczenie pozycji zawiasu przy przychyleniu czolgu
+        // obliczenie pozycji zawiasu przy przychyleniu czolgu
         double tankAngleRad = Math.toRadians(this.angle);
         double hingeX = pivotX + (localHingeX * Math.cos(tankAngleRad)) - (localHingeY * Math.sin(tankAngleRad));
-
-        // 4. Pozycja końcówki lufy (odległość = szerokość Twojego obrazka lufy)
+        // pozycja końcówki lufy (odległość = szerokość Twojego obrazka lufy)
         double absAngleRad = Math.toRadians(getAbsoluteBarrelAngle());
         return hingeX + (barrelImage.getWidth() * Math.cos(absAngleRad));
     }
