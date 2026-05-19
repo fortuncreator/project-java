@@ -3,22 +3,18 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class Terrain {
-    private double[] heights; // tablica przechowujaca 800 wysokosci
-
+    private final double[] heights; // tablica przechowujaca 800 wysokosci
     // konstruktor - generowanie gor
     public Terrain(int screenWidth) {
-        heights = new double[screenWidth]; // tworzenie 800 szufladek w tablicy
-
-        double offset = Math.random() * 1000; // losowe ustawienie gor
+        heights = new double[screenWidth];
+        double offset = Math.random() * 1000;
         for (int i = 0; i < screenWidth; i++) {
-            heights[i] = 400 + Math.sin((i + offset) * 0.01) * 50; // 400 - bazowa wysokosc ziemi,
-            // sinus rysuje fale, i * 0.01 to czestotliwosc fali a *50 to amplituda
+            heights[i] = 400 + Math.sin((i + offset) * 0.01) * 50;
         }
     }
-    //metoda do rysowania ziemi
+    // metoda do rysowania ziemi
     public void draw(GraphicsContext gc) {
-        gc.setFill(Color.FORESTGREEN); // ustawiam kolor na fajny zielony
-
+        gc.setFill(Color.FORESTGREEN);
         for (int i = 0; i < heights.length; i++) {
             gc.fillRect(i, heights[i], 1, 600 - heights[i]);
         }
@@ -33,17 +29,14 @@ public class Terrain {
     }
 
     public void createCrater(double impactX, double impactY, double radius){
-        //zabezpieczenie krawedzi ekranu zeby nie wyjsc poza tablice
+        // zabezpieczenie krawedzi ekranu zeby nie wyjsc poza tablice
         int startX = (int) Math.max(0, impactX - radius);
         int endX = (int) Math.min(heights.length - 1, impactX + radius);
 
         for (int x = startX; x <= endX; x++) {
             double distanceX = Math.abs(x - impactX);
-            //rownanie okregu na glebokosc krateru
             double depth = Math.sqrt((radius * radius) - (distanceX * distanceX));
-            //os Y rosnie w dol, dno krateru Y pocisku + obliczona glebokosc
             double craterBottomY = impactY + depth;
-
             if(heights[x] < craterBottomY){
                 heights[x] = craterBottomY;
             }

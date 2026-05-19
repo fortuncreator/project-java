@@ -8,19 +8,16 @@ public class Tank extends GameObject {
     public void update(Terrain terrain) {
         // srodek czolgu w poziomie
         double centerX = this.x + (tankImage.getWidth() / 2);
-
         // wysokosc trawy pod srodkowym punktem
         double groundY = terrain.getHeight((int) centerX);
-
-        // grawitacja - jak jest w powietrzu to spada
+        // grawitacja
         double tankBottom = this.y + tankImage.getHeight();
         if (tankBottom < groundY) {
-            this.y += 2; // spada
+            this.y += 2;
         } else {
-            this.y = groundY - tankImage.getHeight(); // stoi na ziemi
+            this.y = groundY - tankImage.getHeight();
         }
-
-        // kat na podstawie lewej i prawej krawedzi (tylko do grafiki)
+        // kat na podstawie lewej i prawej krawedzi
         double groundYLeft = terrain.getHeight((int) this.x);
         double groundYRight = terrain.getHeight((int) (this.x + tankImage.getWidth()));
         // roznica poziomow
@@ -30,25 +27,23 @@ public class Tank extends GameObject {
         // kat pochylenia za pomoca arctg
         this.angle = Math.toDegrees(Math.atan2(dy, dx));
     }
-
-    // lufa i jej nachylenie
+    // lufa
     private Image barrelImage;
     private double barrelAngle = 0;
-    private double barrelOffsetX; // przechowuje informacje z ktorej strony jest zawias lufy
+    private double barrelOffsetX; // z ktorej strony
 
     @Override
     public void draw(GraphicsContext gc) {
         gc.save();
-        // przesuniecie plotna na srodek-dol czolgu - tam gdzie gasienice dotykaja ziemi
+        // przesuniecie punktu (0,0) na srodek podstawy czolgu
         double pivotX = this.x + (tankImage.getWidth() / 2);
         double pivotY = this.y + tankImage.getHeight();
         gc.translate(pivotX, pivotY);
-        // obrot
+        // pochylenie calego ukladu wspolrzednych zeby czolg stal rowno na pochylym terenie
         gc.rotate(this.angle);
-        // skoro nasz srodek (0,0) jest teraz na dole pośrodku,
-        // rysujemy obrazek przesuniety w lewo o pol szerokosci i w gore o cala wysokosc
+        // kadlub wzgledem nowego srodka
         gc.drawImage(tankImage, -(tankImage.getWidth() / 2), -tankImage.getHeight());
-        // wstawienie lufy
+        // osobny zapis stanu dla lufy zeby jej obrot nie wplywal na reszte czolgu
         gc.save();
         gc.translate(this.barrelOffsetX, -tankImage.getHeight() + 5);
         gc.rotate(this.barrelAngle);
@@ -58,22 +53,20 @@ public class Tank extends GameObject {
     }
 
     protected double angle = 0;
-
     private Image tankImage;
     private int lives;
     private double fuel;
     private double MAX_FUEL;
 
     public Tank(double startX, double startY, String imagePath, double startBarrelAngle, double barrelOffsetX) {
-        super(startX, startY); // wywolanie konstruktora GameObject(startX, startY)
+        super(startX, startY);
         try {
             tankImage = new Image(imagePath);
             barrelImage = new Image("file:assets/barrel.png");
         } catch (Exception e) {
             System.err.println("Błąd podczas ładowania grafik czołgu: " + e.getMessage());
         }
-
-        //Pobieranie ustawień plikowych
+        // pobieranie ustawień plikowych
         this.lives = GameConfig.startingLives;
         this.MAX_FUEL = GameConfig.maxFuel;
         this.fuel = this.MAX_FUEL;
@@ -98,26 +91,23 @@ public class Tank extends GameObject {
         this.lives--;
         System.out.println("Czolg oberwal, zostalo zyc:" + this.lives);
     }
+
     public int getLives() {
         return this.lives;
     }
     public boolean isDead() {
         return this.lives <= 0;
     }
-    // hitboxy ( zwraca srodek czolgu do obliczen kolizji )
     public double getCenterX() {
         return this.x + (tankImage.getWidth() / 2);
     }
     public double getCenterY() {
         return this.y + (tankImage.getHeight() / 2);
     }
-
-
     // maksymalne wartosci nachylenia lufy
     private double MIN_ANGLE;
     private double MAX_ANGLE;
     private boolean facingRight;
-
     // podnoszenie i opuszczanie lufy
     public void aimUp(){
         if(this.facingRight){
@@ -139,7 +129,6 @@ public class Tank extends GameObject {
             if (this.barrelAngle > MAX_ANGLE) {
                 this.barrelAngle = MAX_ANGLE;
             }
-
         }
         else{
             this.barrelAngle -= 1;
@@ -155,29 +144,27 @@ public class Tank extends GameObject {
             //zabezpieczenie lewej krawedzi ekranu
             if(nextX < 0) return;
             //zabezpieczenie przed pionowa wspinaczka
-            int leftBumper = 0;
+            int leftBumper = 2;
             double currentY = terrain.getHeight((int) (this.x + leftBumper));
             double nextY = terrain.getHeight((int) (nextX + leftBumper));
-            //jesli nastepny krok jest o wiecej niz 4 piksele wyzej to blokada
-            if(currentY - nextY > 16) return;
-
-            this.fuel -= 1.5; // spalanie paliwa
+            // zabezpieczenie jesli za wysoko
+            if(currentY - nextY > 14) return;
+            this.fuel -= 1.5;
             this.x = nextX;
         }
     }
     public void moveRight(Terrain terrain, double screenWidth){
         if (this.fuel > 0) {
             double nextX = this.x +2;
-            //zabezpieczenie prawej krawedzi ekranu
+            // zabezpieczenie prawej krawedzi ekranu
             if(nextX > screenWidth - 24) return;
-            //zabezpieczenie przed pionowa wspinaczka
-            int rightBumper = 16;
+            // zabezpieczenie przed pionowa wspinaczka
+            int rightBumper = 25;
             double currentY = terrain.getHeight((int) (this.x) + rightBumper);
             double nextY = terrain.getHeight((int) (nextX +  rightBumper));
-            //jesli nastepny krok jest o wiecej niz 4 piksele wyzej to blokada
-            if(currentY - nextY > 16) return;
-
-            this.fuel -= 1.5; // spalanie paliwa
+            // zabezpieczenie jesli za wysoko
+            if(currentY - nextY > 14) return;
+            this.fuel -= 1.5;
             this.x = nextX;
         }
     }
@@ -195,7 +182,7 @@ public class Tank extends GameObject {
         // obliczenie pozycji zawiasu przy przychyleniu czolgu
         double tankAngleRad = Math.toRadians(this.angle);
         double hingeX = pivotX + (localHingeX * Math.cos(tankAngleRad)) - (localHingeY * Math.sin(tankAngleRad));
-        // pozycja końcówki lufy (odległość = szerokość Twojego obrazka lufy)
+        // pozycja końcówki lufy
         double absAngleRad = Math.toRadians(getAbsoluteBarrelAngle());
         return hingeX + (barrelImage.getWidth() * Math.cos(absAngleRad));
     }
